@@ -1,2 +1,5 @@
 .secrets
 plan.txt
+__pycache__/
+logfile
+database/
