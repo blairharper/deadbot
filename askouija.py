@@ -1,106 +1,97 @@
 import praw
-from sqlalchemy import create_engine, asc, desc
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
-from database_setup import Base, Question, Answer
+from database_setup import Base, Question
+from tqdm import tqdm
 import sys
-from time import sleep
-print("IamAdeadbot 0.1 - Welcome to the spirit world. e: b@blairdev.com\n")
+print("deadbot 0.1 - reddit.com/AskOuija AI bot e: b@blairdev.com\n")
+
+# Get secret login info etc, use rstrip to remove any whitespace
+with open(".secrets", 'r') as secrets:
+    secrets = secrets.readlines()
+    client_id = secrets[0].rstrip()
+    client_secret = secrets[1].rstrip()
+    client_username = secrets[2].rstrip()
+    client_password = secrets[3].rstrip()
+    db_user = secrets[4].rstrip()
+    db_pass = secrets[5].rstrip()
 
 # Connect to DB and start session
-engine = create_engine('postgresql://deadbot:PASSWORD@localhost/deadbot')
+db_login = "postgresql://{0}:{1}@localhost/deadbot".format(db_user, db_pass)
+engine = create_engine(db_login)
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-
-# Get secret login info etc, use rstrip to remove any whitespace
-secrets = open(".secrets", 'r').readlines()
-client_id = secrets[0].rstrip()
-client_secret = secrets[1].rstrip()
-client_username = secrets[2].rstrip()
-client_password = secrets[3].rstrip()
 
 ua = "deadbot/0.1 by blairdev.com"
 
 # Use PRAW to authenticate reddit session
 reddit = praw.Reddit(client_id=client_id,
-    client_secret=client_secret,
-    user_agent=ua,
-    username=client_username,
-    password=client_password)
+                     client_secret=client_secret,
+                     user_agent=ua,
+                     username=client_username,
+                     password=client_password)
 
 ouija = reddit.subreddit('askouija')
 
 ans = True
 
 
-def getRising():
- 
-    for submission in ouija.rising(limit=5):
-        if submission.id != "673qgu": # ignore the 'please read the rules blah blah blah' post
-            comment_ids = []
-            scores = []
-            total_score = 0
-            
-            submission.comments.replace_more(limit=None)
-            submission.comment_sort = 'top'
-            
-            top_level_comments = list(submission.comments)        
-            top_word = "{0}".format(top_level_comments[0].body)
-            comment_ids.append(top_level_comments[0].id)
-            scores.append(top_level_comments[0].score)
+def get_rising():
+    post_counter = 0
+    limit = int(input("How many posts to scan? "))
+    print("\n")
+    with tqdm(total=limit) as pbar:
+        for submission in ouija.top(limit=limit, time_filter='day'):
+            flairexists = submission.link_flair_text is not None
+            answered = submission.link_flair_text != 'unanswered'
 
-            for reply in top_level_comments[0].replies.list():
-                if (len(reply.body) == 1) and (reply.score > 0):
-                    top_word = top_word + "{0}".format(reply.body)
-                    comment_ids.append(reply.id)
-                    scores.append(reply.score)
+            if flairexists and answered:
+                # print(submission.link_flair_text[12:])
 
-            for s in scores:
-                total_score += int(s)
-            
-            if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
+                if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
 
-                newQuestion = Question(submission_id=submission.id,
-                                       title=submission.title)
-                session.add(newQuestion)
-                session.commit()
+                    new_question = Question(submission_id=submission.id,
+                                            title=submission.title,
+                                            answer=submission.link_flair_text[12:])
+                    session.add(new_question)
+                    session.commit()
+                    post_counter += 1
+            pbar.update(1)
+    print("Done! {0} new posts added to the database.\n".format(post_counter))
 
-                newAnswer = Answer(comment_ids=comment_ids,
-                                   scores=scores,
-                                   body=top_word,
-                                   total_score=total_score,
-                                   question_id=newQuestion.id)
-                session.add(newAnswer)
 
-                session.commit()
-                print("{0}\n".format(top_word))
-
-def queryDB():
+def query_db():
     q = session.query(Question).all()
 
     for x in q:
-        print("ID: {0} Title: {1}\n".format(x.id, x.title))
+        print("ID: {0}\n"
+              "Submission ID: {1}\n"
+              "Title: {2}\n"
+              "Answer: {3}\n\n\n".format(x.id, x.submission_id, x.title, x.answer))
 
 
-    a = session.query(Answer).all()
-
-    for x in a:
-        print("ID: {0} QuestionID: {1} Answer: {2}".format(x.id, x.question_id, x.body))
+def get_stats():
+    total = session.query(Question).count()
+    unique = session.query(Question).distinct(Question.answer).count()
+    print("\nThere are {0} answers from spirits in the database, {1} of them are unique.\n".format(total, unique))
 
 
 while ans:
     print("""
-        1. Get rising
-        2. Query database
-        3. Exit
+        Deadbot Menu:
+        1. Scan for hot posts
+        2. Show me what you've got
+        3. Stats
+        4. Exit
         """)
     ans = input("What would you like to do? ")
     if ans == "1":
-        getRising()
+        get_rising()
     elif ans == "2":
-        queryDB()
+        query_db()
     elif ans == "3":
+        get_stats()
+    elif ans == "4":
         print("\nGoodbye")
         sys.exit()
-
