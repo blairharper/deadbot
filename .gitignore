@@ -4,3 +4,4 @@ __pycache__/
 logfile
 database/
 .idea/
+save.msgpack

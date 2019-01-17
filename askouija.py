@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Question
 from tqdm import tqdm
+from os import system
 import sys
 print("deadbot 0.1 - reddit.com/AskOuija AI bot e: b@blairdev.com\n")
 
@@ -37,7 +38,7 @@ ouija = reddit.subreddit('askouija')
 ans = True
 
 
-def get_rising():
+def get_hot():
     post_counter = 0
     limit = int(input("How many posts to scan? "))
     print("\n")
@@ -61,6 +62,10 @@ def get_rising():
     print("Done! {0} new posts added to the database.\n".format(post_counter))
 
 
+def cls():
+    system('clear')
+
+
 def query_db():
     q = session.query(Question).all()
 
@@ -77,21 +82,38 @@ def get_stats():
     print("\nThere are {0} answers from spirits in the database, {1} of them are unique.\n".format(total, unique))
 
 
+def preprocess_data():
+    # TODO:
+    # 1. Get every entry in DB
+    # 2. Give each unique word an ID number
+    # 3. replace every word with an ID number / create lookup table
+    #       (dictionaries -> word to ID and ID to word)
+    # 4. Tokenise punctuation
+    pass
+
+
 while ans:
     print("""
         Deadbot Menu:
         1. Scan for hot posts
         2. Show me what you've got
         3. Stats
-        4. Exit
+        4. Preprocess data
+        5. Exit\n
         """)
     ans = input("What would you like to do? ")
     if ans == "1":
-        get_rising()
+        cls()
+        get_hot()
     elif ans == "2":
+        cls()
         query_db()
     elif ans == "3":
+        cls()
         get_stats()
     elif ans == "4":
+        cls()
+        preprocess_data()
+    elif ans == "5":
         print("\nGoodbye")
         sys.exit()

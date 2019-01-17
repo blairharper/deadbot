@@ -5,9 +5,9 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 with open(".secrets", 'r') as secrets:
+    secrets = secrets.readlines()
     db_user = secrets[4].rstrip()
     db_pass = secrets[5].rstrip()
-
 
 class Question(Base):
     """ Database table structure for storing questions """
