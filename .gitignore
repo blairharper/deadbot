@@ -5,3 +5,8 @@ logfile
 database/
 .idea/
 save.msgpack
+save.*
+params.*
+*.msgpack
+*.p
+checkpoint
