@@ -90,12 +90,12 @@ def train():
 
     # hyperparams
     num_epochs = 75
-    batch_size = 32
+    batch_size = 50
     rnn_size = 1024
     embed_dim = 128
     seq_length = 19
-    learning_rate = 0.002
-    show_every_n_batches = 16
+    learning_rate = 0.001
+    show_every_n_batches = 10
     save_dir = './save'
 
     train_graph = tf.Graph()
