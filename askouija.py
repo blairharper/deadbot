@@ -7,7 +7,11 @@ from os import system
 import sys
 import deadbot_nn
 import pickle
-print("deadbot 0.1 - reddit.com/AskOuija AI bot e: b@blairdev.com\n")
+from flask import Flask, render_template
+
+app = Flask(__name__, template_folder="html")
+
+print("deadbot 0.2.1 - reddit.com/AskOuija AI bot e: b@blairdev.com\n")
 
 # Get secret login info etc, use rstrip to remove any whitespace
 with open(".secrets", 'r') as secrets:
@@ -37,8 +41,13 @@ reddit = praw.Reddit(client_id=client_id,
 
 ouija = reddit.subreddit('askouija')
 
-ans = True
+### Flask ###
 
+@app.route('/')
+def showHome():
+    return render_template('home.html')
+
+### END ###
 
 def get_hot(askreddit=0):
     """
@@ -196,49 +205,6 @@ def token_lookup():
     return d_punctuation
 
 
-while ans:
-    print("""
-        Deadbot Menu:
-        1. Scan for hot posts
-        2. Scan for new questions (may not have answers)
-        3. Show me what you've got
-        4. Stats
-        5. Preprocess data
-        6. Train model
-        7. Generate a questions from saved model
-        8. Exit
-        9. Scan ask reddit\n
-        """)
-    ans = input("What would you like to do? ")
-    if ans == "1":
-        cls()
-        get_hot()
-    if ans == "2":
-        cls()
-        get_new()
-    elif ans == "3":
-        cls()
-        query_db()
-    elif ans == "4":
-        cls()
-        get_stats()
-    elif ans == "5":
-        cls()
-        preprocess_data()
-    elif ans == "6":
-        cls()
-        deadbot_nn.train()
-    elif ans == "7":
-        cls()
-        prime_word = input("What prime word should I use? ")
-        get_question = deadbot_nn.generate_question(prime_word.lower())
-        if get_question is not None:
-            print("Posting to reddit... {}".format(get_question))
-            new_submission = ouija.submit(title=get_question, selftext='')
-            print("Done! {}".format(new_submission.permalink))
-    elif ans == "8":
-        print("\nGoodbye")
-        sys.exit()
-    elif ans == "9":
-        cls()
-        get_hot(askreddit=1)
+if __name__ == '__main__':
+    app.debug = True
+    app.run()
