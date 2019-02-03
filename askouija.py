@@ -41,6 +41,12 @@ ans = True
 
 
 def get_hot(askreddit=0):
+    """
+    Gets "hot" posts from r/AskOuija from last 24hours and
+    adds them to database if they have answer flairs
+
+    :param askreddit: 0 - will search r/AskOuija, 1 will search r/AskReddit
+    """
     post_counter = 0
     limit = int(input("How many posts to scan?"))
     print("\n")
@@ -50,7 +56,7 @@ def get_hot(askreddit=0):
         ouija = reddit.subreddit('askouija')
 
     with tqdm(total=limit) as pbar:
-        for submission in ouija.top(limit=limit, time_filter='all'):
+        for submission in ouija.top(limit=limit, time_filter='day'):
             flairexists = submission.link_flair_text is not None
             answered = submission.link_flair_text != 'unanswered'
 
@@ -78,6 +84,10 @@ def get_hot(askreddit=0):
 
 
 def get_new():
+    """
+    Gets "new" posts from r/AskOuija and adds them to database
+    This feature is used to bolster data resources - many more posts are found this way
+    """
     post_counter = 0
     limit = int(input("How many posts to scan? "))
     print("\n")
@@ -100,6 +110,9 @@ def cls():
 
 
 def query_db():
+    """
+    Prints all database entries to terminal
+    """
     q = session.query(Question).all()
 
     for x in q:
@@ -110,12 +123,20 @@ def query_db():
 
 
 def get_stats():
+    """
+    Prints statistics from database data to terminal
+    """
     total = session.query(Question).count()
     unique = session.query(Question).distinct(Question.answer).count()
     print("\nThere are {0} answers from spirits in the database, {1} of them are unique.\n".format(total, unique))
 
 
 def preprocess_data():
+    """
+    Prepares data for deep learning algorithm by converting words to integers (word2vec)
+    and replacing punctuation with token keys
+    Saves output to pickle file (preprocess.p)
+    """
     questions = []
     q = session.query(Question).all()
 
@@ -142,6 +163,9 @@ def preprocess_data():
 
 
 def create_lookup_tables(text):
+    """
+    Creates lookup table for word2vec
+    """
     int_to_vocab, vocab_to_int = {}, {}
 
     for x, y in enumerate(text):

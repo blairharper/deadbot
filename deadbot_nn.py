@@ -1,22 +1,28 @@
 # Neural network for deadbot
 import pickle
+import numpy as np
+import re
 import tensorflow as tf
 from tensorflow.python.client import device_lib
-import numpy as np
 from tensorflow.contrib import seq2seq
-import re
-
 
 def load_data():
+    # loads pre-processed data from pickle file
     return pickle.load(open('preprocess.p', mode='rb'))
 
+
 def save_params(params):
+    # write params to pickle file
     pickle.dump(params, open('params.p', 'wb'))
 
+
 def load_params():
+    # load params from pickle file
     return pickle.load(open('params.p', mode='rb'))
 
+
 def get_available_gpus():
+    # checks GPUs available to tensorflow
     local_device_protos = device_lib.list_local_devices()
     return (device.name for device in local_device_protos if device.device_type == 'GPU')
 
@@ -27,12 +33,15 @@ def version_check():
 
 
 def get_inputs():
-    inputs = tf.placeholder(tf.int32, shape=[None,None] , name='input')
-    targets = tf.placeholder(tf.int32, shape=[None,None], name='target')
+    # sets placeholders for input tensors & learning rate
+    inputs = tf.placeholder(tf.int32, shape=[None, None], name='input')
+    targets = tf.placeholder(tf.int32, shape=[None, None], name='target')
     learning_rate = tf.placeholder(tf.float32, name='learning_rate')
     return inputs, targets, learning_rate
 
+
 def get_init_cell(batch_size, rnn_size):
+    # sets initial lstm cell
     lstm = tf.nn.rnn_cell.LSTMCell(name='basic_lstm_cell', num_units=rnn_size)
     drop = tf.contrib.rnn.MultiRNNCell(
         [tf.contrib.rnn.DropoutWrapper(
@@ -46,6 +55,7 @@ def get_init_cell(batch_size, rnn_size):
 
 
 def get_embed(input_data, vocab_size, embed_dim):
+    # create embedding layer
     embed = tf.Variable(tf.random_uniform((vocab_size, embed_dim), -1, 1))
     embeded_input = tf.nn.embedding_lookup(embed, input_data)
     return embeded_input
@@ -66,6 +76,7 @@ def build_nn(cell, rnn_size, input_data, vocab_size, embed_dim):
 
 
 def get_batches(int_text, batch_size, seq_length):
+    # split input data into batches based on batch size and sequence length hyper params
     nb = int(len(int_text) / (batch_size * seq_length))
     nb_k = (nb * batch_size * seq_length)
 
@@ -86,15 +97,16 @@ def get_batches(int_text, batch_size, seq_length):
 
 def train():
     version_check()
+    # load word2vec data from preprocessed pickle file
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
 
     # hyperparams
-    num_epochs = 75
-    batch_size = 50
+    num_epochs = 100
+    batch_size = 100
     rnn_size = 1024
     embed_dim = 128
     seq_length = 19
-    learning_rate = 0.001
+    learning_rate = 0.002
     show_every_n_batches = 10
     save_dir = './save'
 
@@ -151,13 +163,10 @@ def train():
         # Save Model
         saver = tf.train.Saver()
         saver.save(sess, save_dir)
-
-        # Save Model
-        saver = tf.train.Saver()
-        saver.save(sess, save_dir)
         params = (seq_length, save_dir)
         save_params(params)
         print('Model Trained and Saved')
+
 
 def get_tensors(loaded_graph):
     x_tensor = loaded_graph.get_tensor_by_name('input:0')
@@ -172,6 +181,7 @@ def pick_word(probabilities, int_to_vocab):
     c = np.sum(probabilities) * np.random.rand(1)
     word = int_to_vocab[int(np.searchsorted(csum, c))]
     return word
+
 
 def split_into_sentences(text):
     alphabets = "([A-Za-z])"
@@ -205,6 +215,7 @@ def split_into_sentences(text):
     sentences = sentences[:-1]
     sentences = [s.strip() for s in sentences]
     return sentences
+
 
 def generate_question(prime_word):
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
@@ -251,6 +262,3 @@ def generate_question(prime_word):
         if post_to_reddit.lower() == 'y':
             return question.capitalize()
         print('\n')
-
-
-
