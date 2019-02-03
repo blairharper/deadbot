@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+    <title>{% block title %}{% endblock %} - Deadbot: An AI bot for r/AskOuija</title>
+    {% endblock %}
+  </head>
+  <body>
+      <nav>
+        Menu:
+        <li><a href="{{ url_for('get_home') }}">Home</a></li>
+        <li><a href="{{ url_for('get_posts') }}">Seed database</a></li>
+        <li><a href="{{ url_for('get_train') }}">Train model</a></li>
+        <li><a href="{{ url_for('get_questions') }}">Generate questions</a></li>
+    </nav>
+    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="footer">
+      {% block footer %}
+      &copy; Copyright 2019 by <a href="http://blairdev.com/">blairdev</a>.
+      {% endblock %}
+    </div>
+  </body>
+</html>
