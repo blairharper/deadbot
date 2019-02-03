@@ -7,7 +7,8 @@ from os import system
 import sys
 import deadbot_nn
 import pickle
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, Response
+import time
 
 app = Flask(__name__, template_folder="html")
 
@@ -44,9 +45,88 @@ ouija = reddit.subreddit('askouija')
 ### Flask ###
 
 @app.route('/')
-def showHome():
+def get_home():
     return render_template('home.html')
 
+@app.route('/getposts')
+def get_posts():
+
+    return render_template('getposts.html')
+
+
+@app.route('/getposts/progress')
+def get_posts_progress():
+    def seed_db():
+        """
+        Gets "hot" posts from r/AskOuija from last 24hours and
+        adds them to database if they have answer flairs
+
+        :param askreddit: 0 - will search r/AskOuija, 1 will search r/AskReddit
+        """
+        post_counter = 0
+        limit = 1000
+        print("\n")
+        askreddit = 0
+        if askreddit == 1:
+            ouija = reddit.subreddit('askreddit')
+        else:
+            ouija = reddit.subreddit('askouija')
+        pbar = 0
+        x = 0
+        t_counter = 0
+        while x <= 100:
+            for submission in ouija.top(limit=limit, time_filter='day'):
+                flairexists = submission.link_flair_text is not None
+                answered = submission.link_flair_text != 'unanswered'
+                t_counter += 1
+                print(x)
+                yield "data:" + str(x) + "\n\n"
+                pbar += 1
+                if pbar == 100:
+                    pbar = 0
+                    x += 10
+
+                if x == 100:
+                    print(t_counter)
+                    print("Done! {0} new posts added to the database.\n".format(post_counter))
+                    print("Preprocessing data ready for training...")
+                    preprocess_data()
+                    yield "data:100\n\n"
+                    return Response(seed_db(), mimetype='text/event-stream')
+                if askreddit == 1:
+                    flairexists = True
+                    answered = True
+
+                if flairexists and answered:
+                    # print(submission.link_flair_text[12:])
+
+                    if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
+
+                        if submission.link_flair_text is not None:
+                            answer = submission.link_flair_text[12:]
+                        else:
+                            answer = "||"
+                        new_question = Question(submission_id=submission.id,
+                                                title=submission.title,
+                                                answer=answer)
+                        session.add(new_question)
+                        session.commit()
+                        post_counter += 1
+
+
+        print("Done! {0} new posts added to the database.\n".format(post_counter))
+        print("Preprocessing data ready for training...")
+        preprocess_data()
+
+    return Response(seed_db(), mimetype='text/event-stream')
+
+@app.route('/train')
+def get_train():
+    return render_template('train.html')
+
+@app.route('/generator')
+def get_questions():
+    return render_template('generatequestions.html')
 ### END ###
 
 def get_hot(askreddit=0):
@@ -90,6 +170,9 @@ def get_hot(askreddit=0):
                     post_counter += 1
             pbar.update(1)
     print("Done! {0} new posts added to the database.\n".format(post_counter))
+    print("Preprocessing data ready for training...")
+    preprocess_data()
+
 
 
 def get_new():
@@ -112,6 +195,9 @@ def get_new():
                 post_counter += 1
             pbar.update(1)
     print("Done! {0} new posts added to the database.\n".format(post_counter))
+    print("Preprocessing data ready for training...")
+    preprocess_data()
+
 
 
 def cls():
