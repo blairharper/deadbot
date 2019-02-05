@@ -10,6 +10,7 @@
 	    var progress = status[0];
         var batch = status[1];
         var loss = status[2];
+
         $('.xxx').text('batch: '+batch+'\ntrain_loss: '+loss)
 		$('.progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);
 		$('.progress-bar-label').text(progress+'%');

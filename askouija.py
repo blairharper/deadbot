@@ -65,7 +65,7 @@ def get_posts_progress():
 
         """
         post_counter = 0
-        limit = 1000
+        limit = 500
         print("\n")
         askreddit = 0
         if askreddit == 1:
@@ -87,7 +87,7 @@ def get_posts_progress():
                 yield "data:" + str(x) + "\n\n"
 
                 pbar += 1
-                if pbar == 100:
+                if round((pbar * (100 / limit))) == 10:
                     pbar = 0
                     x += 10
 
@@ -96,7 +96,7 @@ def get_posts_progress():
                     print("Preprocessing data ready for training...")
                     preprocess_data()
                     yield "data:Done! {0} new posts added to the database.\n\n".format(post_counter)
-                    # return Response(seed_db(), mimetype='text/event-stream')
+                    return Response(seed_db(), mimetype='text/event-stream')
                 if askreddit == 1:
                     flairexists = True
                     answered = True

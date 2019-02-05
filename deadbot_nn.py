@@ -100,9 +100,9 @@ def train():
     # load word2vec data from preprocessed pickle file
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
     # hyperparams
-    num_epochs = 100
+    num_epochs = 75
     batch_size = 100
-    rnn_size = 1024
+    rnn_size = 128
     embed_dim = 128
     seq_length = 19
     learning_rate = 0.002
@@ -142,6 +142,7 @@ def train():
 
         for epoch_i in range(num_epochs):
             state = sess.run(initial_state, {input_text: batches[0][0]})
+            progress = round(epoch_i * (100 / num_epochs))
 
             for batch_i, (x, y) in enumerate(batches):
                 feed = {
@@ -150,10 +151,10 @@ def train():
                     initial_state: state,
                     lr: learning_rate}
                 train_loss, state, _ = sess.run([cost, final_state, train_op], feed)
-                yield "data:{0},{1}/{2},{3}\n\n".format(str(epoch_i),
-                                                                             str(batch_i),
-                                                                             str(len(batches)),
-                                                                             str(train_loss))
+                yield "data:{0},{1}/{2},{3}\n\n".format(str(progress),
+                                                        str(batch_i),
+                                                        str(len(batches)),
+                                                        str(train_loss))
                 # Show every <show_every_n_batches> batches
                 final_loss = train_loss
                 if (epoch_i * len(batches) + batch_i) % show_every_n_batches == 0:
