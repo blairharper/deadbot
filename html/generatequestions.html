@@ -5,12 +5,22 @@
   <style type="text/css">
     .important { color: #336699; }
   </style>
+<script type="text/javascript">// <![CDATA[
+        function loading(){
+            $("#loading").show();
+            $("#content").hide();
+        }
+// ]]></script>
 {% endblock %}
 {% block content %}
   <h1>Generate questions</h1>
-  {% if questions[0] %}
+  {% set questions = get_questions("spirits") %}
+  {% if questions %}
     {% for q in questions %}
-      <p class="OuijaQuestion">{{ q }}</p>
+        <form action = "#" method="post">
+            <input type="text" value="{{ q }}" name="question">
+            <input type="submit" value="Post to Reddit">
+        </form>
     {% endfor %}
   {% endif %}
 {% endblock %}

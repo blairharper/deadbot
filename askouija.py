@@ -7,7 +7,7 @@ from os import system
 import sys
 import deadbot_nn
 import pickle
-from flask import Flask, render_template, url_for, Response, flash
+from flask import Flask, render_template, url_for, Response, flash, request
 import time
 
 app = Flask(__name__, template_folder="html")
@@ -65,7 +65,7 @@ def get_posts_progress():
 
         """
         post_counter = 0
-        limit = 500
+        limit = 1000
         print("\n")
         askreddit = 0
         if askreddit == 1:
@@ -114,10 +114,14 @@ def get_train_progress():
     return Response(deadbot_nn.train(), mimetype='text/event-stream')
 
 
-@app.route('/generator')
+@app.route('/generator', methods=['GET', 'POST'])
 def get_questions():
-    q = deadbot_nn.generate_question("spirits")
-    return render_template('generatequestions.html', questions=q)
+    if request.method == 'POST':
+        flash("Posted question to reddit: {0}".format(request.form['question']))
+        return render_template('home.html')
+    else:
+        return render_template('generatequestions.html', get_questions=deadbot_nn.generate_question)
+
 
 ### END ###
 

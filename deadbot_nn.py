@@ -262,7 +262,7 @@ def generate_question(prime_word):
     ouija_question = split_into_sentences(ouija_question)
     questions = []
     for question in ouija_question:
-        questions.append(question)
+        questions.append(question.capitalize())
 
     return questions
         # print(question)

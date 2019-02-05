@@ -17,6 +17,15 @@
         <li><a href="{{ url_for('get_posts') }}">Seed database</a></li>
         <li><a href="{{ url_for('get_train') }}">Train model</a></li>
         <li><a href="{{ url_for('get_questions') }}">Generate questions</a></li>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class=flashes>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
     </nav>
     <div id="content">{% block content %}{% endblock %}</div>
     <div id="footer">
