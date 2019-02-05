@@ -99,7 +99,6 @@ def train():
     version_check()
     # load word2vec data from preprocessed pickle file
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
-
     # hyperparams
     num_epochs = 100
     batch_size = 100
@@ -137,7 +136,7 @@ def train():
 
     # Train
     batches = get_batches(int_text, batch_size, seq_length)
-
+    final_loss = 0
     with tf.Session(graph=train_graph) as sess:
         sess.run(tf.global_variables_initializer())
 
@@ -151,8 +150,12 @@ def train():
                     initial_state: state,
                     lr: learning_rate}
                 train_loss, state, _ = sess.run([cost, final_state, train_op], feed)
-
+                yield "data:{0},{1}/{2},{3}\n\n".format(str(epoch_i),
+                                                                             str(batch_i),
+                                                                             str(len(batches)),
+                                                                             str(train_loss))
                 # Show every <show_every_n_batches> batches
+                final_loss = train_loss
                 if (epoch_i * len(batches) + batch_i) % show_every_n_batches == 0:
                     print('Epoch {:>3} Batch {:>4}/{}   train_loss = {:.3f}'.format(
                         epoch_i,
@@ -165,6 +168,7 @@ def train():
         saver.save(sess, save_dir)
         params = (seq_length, save_dir)
         save_params(params)
+        yield "Done! Model trained and saved, final training loss: {0}".format(final_loss)
         print('Model Trained and Saved')
 
 

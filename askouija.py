@@ -111,8 +111,8 @@ def get_train():
 @app.route('/train/progress')
 def get_train_progress():
     ''' Called by event listener to train model and update progress bar'''
-    def train_model():
-        pass
+    return Response(deadbot_nn.train(), mimetype='text/event-stream')
+
 
 @app.route('/generator')
 def get_questions():

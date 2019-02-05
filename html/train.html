@@ -2,12 +2,31 @@
 {% block title %}Train{% endblock %}
 {% block head %}
   {{ super() }}
-  <style type="text/css">
-    .important { color: #336699; }
-  </style>
+    <script>
+    $('.progress-bar-label').text('Initialising...');
+	var source = new EventSource("/train/progress");
+	source.onmessage = function(event) {
+	    var status = event.data.split(",");
+	    var progress = status[0];
+        var batch = status[1];
+        var loss = status[2];
+        $('.xxx').text('batch: '+batch+'\ntrain_loss: '+loss)
+		$('.progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);
+		$('.progress-bar-label').text(progress+'%');
+		if(event.data.substring(0, 4) == "Done"){
+			$('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
+			$('.progress-bar-label').text(event.data);
+			source.close()
+		}
+	}
+	</script>
 {% endblock %}
 {% block content %}
   <h1>Train model</h1>
-  <p class="important">
-    outputs from model training here...
+    <div class="xxx"></div>
+    <div class="progress" style="width: 50%; margin: 50px;">
+		<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+			<span class="progress-bar-label">0%</span>
+		</div>
+	</div>
 {% endblock %}
