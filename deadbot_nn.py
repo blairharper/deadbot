@@ -100,9 +100,9 @@ def train():
     # load word2vec data from preprocessed pickle file
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
     # hyperparams
-    num_epochs = 75
-    batch_size = 100
-    rnn_size = 128
+    num_epochs = 100
+    batch_size = 200
+    rnn_size = 1024
     embed_dim = 128
     seq_length = 19
     learning_rate = 0.002
@@ -136,7 +136,7 @@ def train():
 
     # Train
     batches = get_batches(int_text, batch_size, seq_length)
-    final_loss = 0
+    final_loss = 100
     with tf.Session(graph=train_graph) as sess:
         sess.run(tf.global_variables_initializer())
 
@@ -156,7 +156,8 @@ def train():
                                                         str(len(batches)),
                                                         str(train_loss))
                 # Show every <show_every_n_batches> batches
-                final_loss = train_loss
+                if train_loss < final_loss:
+                    final_loss = train_loss
                 if (epoch_i * len(batches) + batch_i) % show_every_n_batches == 0:
                     print('Epoch {:>3} Batch {:>4}/{}   train_loss = {:.3f}'.format(
                         epoch_i,
@@ -169,7 +170,7 @@ def train():
         saver.save(sess, save_dir)
         params = (seq_length, save_dir)
         save_params(params)
-        yield "Done! Model trained and saved, final training loss: {0}".format(final_loss)
+        yield "data:Done! Model trained and saved. Best training loss: {0}.\n\n".format(final_loss)
         print('Model Trained and Saved')
 
 
@@ -259,11 +260,14 @@ def generate_question(prime_word):
     ouija_question = ouija_question.replace('\n ', '\n')
     ouija_question = ouija_question.replace('( ', '(')
     ouija_question = split_into_sentences(ouija_question)
-
+    questions = []
     for question in ouija_question:
-        print(question)
-        post_to_reddit = input("Would you like to post this question to reddit? [N/y] ")
+        questions.append(question)
 
-        if post_to_reddit.lower() == 'y':
-            return question.capitalize()
-        print('\n')
+    return questions
+        # print(question)
+        # post_to_reddit = input("Would you like to post this question to reddit? [N/y] ")
+        #
+        # if post_to_reddit.lower() == 'y':
+        #     return question.capitalize()
+        # print('\n')

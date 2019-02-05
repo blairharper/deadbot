@@ -8,6 +8,9 @@
 {% endblock %}
 {% block content %}
   <h1>Generate questions</h1>
-  <p class="important">
-    outputs from gen questions here...
+  {% if questions[0] %}
+    {% for q in questions %}
+      <p class="OuijaQuestion">{{ q }}</p>
+    {% endfor %}
+  {% endif %}
 {% endblock %}

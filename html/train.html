@@ -17,6 +17,7 @@
 		if(event.data.substring(0, 4) == "Done"){
 			$('.progress-bar').css('width', '100%').attr('aria-valuenow', 100);
 			$('.progress-bar-label').text(event.data);
+			$('.xxx').text('Training complete.')
 			source.close()
 		}
 	}

@@ -116,7 +116,9 @@ def get_train_progress():
 
 @app.route('/generator')
 def get_questions():
-    return render_template('generatequestions.html')
+    q = deadbot_nn.generate_question("spirits")
+    return render_template('generatequestions.html', questions=q)
+
 ### END ###
 
 def get_hot(askreddit=0):
