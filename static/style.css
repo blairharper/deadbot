@@ -1,0 +1,50 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body{
+    background-image:url('../static/head.jpeg');
+    background-attachment:fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 60px;
+}
+
+#content{
+    padding-top: 60px;
+    padding-left: 15px;
+}
+
+#content h1 {
+    color: lightgrey;
+}
+
+#content p {
+    color: lightblue;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+}
+
+.container .text-muted {
+  margin: 20px 0;
+}
+
+.container .progress {
+
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+.xxx {
+    color: lightblue;
+}

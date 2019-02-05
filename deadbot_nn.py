@@ -151,10 +151,12 @@ def train():
                     initial_state: state,
                     lr: learning_rate}
                 train_loss, state, _ = sess.run([cost, final_state, train_op], feed)
-                yield "data:{0},{1}/{2},{3}\n\n".format(str(progress),
-                                                        str(batch_i),
-                                                        str(len(batches)),
-                                                        str(train_loss))
+                yield "data:{0},{4}/{5}, {1}/{2},{3}\n\n".format(str(progress),
+                                                                 str(batch_i),
+                                                                 str(len(batches)),
+                                                                 str(train_loss),
+                                                                 str(epoch_i),
+                                                                 str(num_epochs))
                 # Show every <show_every_n_batches> batches
                 if train_loss < final_loss:
                     final_loss = train_loss
