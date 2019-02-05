@@ -7,7 +7,7 @@ from os import system
 import sys
 import deadbot_nn
 import pickle
-from flask import Flask, render_template, url_for, Response
+from flask import Flask, render_template, url_for, Response, flash
 import time
 
 app = Flask(__name__, template_folder="html")
@@ -48,9 +48,9 @@ ouija = reddit.subreddit('askouija')
 def get_home():
     return render_template('home.html')
 
+
 @app.route('/getposts')
 def get_posts():
-
     return render_template('getposts.html')
 
 
@@ -62,6 +62,7 @@ def get_posts_progress():
         adds them to database if they have answer flairs
 
         :param askreddit: 0 - will search r/AskOuija, 1 will search r/AskReddit
+
         """
         post_counter = 0
         limit = 1000
@@ -73,56 +74,45 @@ def get_posts_progress():
             ouija = reddit.subreddit('askouija')
         pbar = 0
         x = 0
-        t_counter = 0
+
         while x <= 100:
-            for submission in ouija.top(limit=limit, time_filter='day'):
-                flairexists = submission.link_flair_text is not None
-                answered = submission.link_flair_text != 'unanswered'
-                t_counter += 1
-                print(x)
+            for submission in ouija.new(limit=limit):
+                if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
+                    new_question = Question(submission_id=submission.id,
+                                            title=submission.title,
+                                            answer="||")
+                    session.add(new_question)
+                    session.commit()
+                    post_counter += 1
                 yield "data:" + str(x) + "\n\n"
+
                 pbar += 1
                 if pbar == 100:
                     pbar = 0
                     x += 10
 
                 if x == 100:
-                    print(t_counter)
                     print("Done! {0} new posts added to the database.\n".format(post_counter))
                     print("Preprocessing data ready for training...")
                     preprocess_data()
-                    yield "data:100\n\n"
-                    return Response(seed_db(), mimetype='text/event-stream')
+                    yield "data:Done! {0} new posts added to the database.\n\n".format(post_counter)
+                    # return Response(seed_db(), mimetype='text/event-stream')
                 if askreddit == 1:
                     flairexists = True
                     answered = True
-
-                if flairexists and answered:
-                    # print(submission.link_flair_text[12:])
-
-                    if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
-
-                        if submission.link_flair_text is not None:
-                            answer = submission.link_flair_text[12:]
-                        else:
-                            answer = "||"
-                        new_question = Question(submission_id=submission.id,
-                                                title=submission.title,
-                                                answer=answer)
-                        session.add(new_question)
-                        session.commit()
-                        post_counter += 1
-
-
-        print("Done! {0} new posts added to the database.\n".format(post_counter))
-        print("Preprocessing data ready for training...")
-        preprocess_data()
 
     return Response(seed_db(), mimetype='text/event-stream')
 
 @app.route('/train')
 def get_train():
     return render_template('train.html')
+
+
+@app.route('/train/progress')
+def get_train_progress():
+    ''' Called by event listener to train model and update progress bar'''
+    def train_model():
+        pass
 
 @app.route('/generator')
 def get_questions():
@@ -172,7 +162,6 @@ def get_hot(askreddit=0):
     print("Done! {0} new posts added to the database.\n".format(post_counter))
     print("Preprocessing data ready for training...")
     preprocess_data()
-
 
 
 def get_new():
@@ -292,5 +281,6 @@ def token_lookup():
 
 
 if __name__ == '__main__':
+    app.secret_key = 'super_secret_key'
     app.debug = True
     app.run()
