@@ -18,8 +18,10 @@
   {% if questions %}
     {% for q in questions %}
         <form action = "#" method="post">
-            <input type="text" value="{{ q }}" name="question">
-            <input type="submit" value="Post to Reddit">
+            <div class="form-group">
+                <input class="form-control-plaintext col-sm-6" type="text" value="{{ q }}" name="question" readonly>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-left: 15px; margin-bottom: 10px">Post to Reddit</button>
+            </div>
         </form>
     {% endfor %}
   {% endif %}

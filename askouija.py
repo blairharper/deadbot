@@ -117,86 +117,15 @@ def get_train_progress():
 @app.route('/generator', methods=['GET', 'POST'])
 def get_questions():
     if request.method == 'POST':
-        flash("Posted question to reddit: {0}".format(request.form['question']))
+        new_submission = ouija.submit(title=request.form['question'], selftext='')
+        print("Done! {}".format(new_submission.permalink))
+        flash("Posted question to reddit: {0}".format(new_submission.permalink))
         return render_template('home.html')
     else:
         return render_template('generatequestions.html', get_questions=deadbot_nn.generate_question)
 
 
 ### END ###
-
-def get_hot(askreddit=0):
-    """
-    Gets "hot" posts from r/AskOuija from last 24hours and
-    adds them to database if they have answer flairs
-
-    :param askreddit: 0 - will search r/AskOuija, 1 will search r/AskReddit
-    """
-    post_counter = 0
-    limit = int(input("How many posts to scan?"))
-    print("\n")
-    if askreddit == 1:
-        ouija = reddit.subreddit('askreddit')
-    else:
-        ouija = reddit.subreddit('askouija')
-
-    with tqdm(total=limit) as pbar:
-        for submission in ouija.top(limit=limit, time_filter='day'):
-            flairexists = submission.link_flair_text is not None
-            answered = submission.link_flair_text != 'unanswered'
-
-            if askreddit == 1:
-                flairexists = True
-                answered = True
-
-            if flairexists and answered:
-                # print(submission.link_flair_text[12:])
-
-                if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
-
-                    if submission.link_flair_text is not None:
-                        answer = submission.link_flair_text[12:]
-                    else:
-                        answer = "||"
-                    new_question = Question(submission_id=submission.id,
-                                            title=submission.title,
-                                            answer=answer)
-                    session.add(new_question)
-                    session.commit()
-                    post_counter += 1
-            pbar.update(1)
-    print("Done! {0} new posts added to the database.\n".format(post_counter))
-    print("Preprocessing data ready for training...")
-    preprocess_data()
-
-
-def get_new():
-    """
-    Gets "new" posts from r/AskOuija and adds them to database
-    This feature is used to bolster data resources - many more posts are found this way
-    """
-    post_counter = 0
-    limit = int(input("How many posts to scan? "))
-    print("\n")
-    with tqdm(total=limit) as pbar:
-        for submission in ouija.new(limit=limit):
-            if session.query(Question.id).filter_by(submission_id=submission.id).scalar() is None:
-
-                new_question = Question(submission_id=submission.id,
-                                        title=submission.title,
-                                        answer="||")
-                session.add(new_question)
-                session.commit()
-                post_counter += 1
-            pbar.update(1)
-    print("Done! {0} new posts added to the database.\n".format(post_counter))
-    print("Preprocessing data ready for training...")
-    preprocess_data()
-
-
-
-def cls():
-    system('clear')
 
 
 def query_db():
