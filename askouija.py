@@ -124,7 +124,11 @@ def get_questions():
     else:
         return render_template('generatequestions.html', get_questions=deadbot_nn.generate_question)
 
-
+@app.route('/stats')
+def get_stats():
+    num_questions = session.query(Question).count()
+    unique_answers = session.query(Question).distinct(Question.answer).count()
+    return render_template('stats.html', num_questions=num_questions, unique_answers=unique_answers)
 ### END ###
 
 
@@ -139,15 +143,6 @@ def query_db():
               "Submission ID: {1}\n"
               "Title: {2}\n"
               "Answer: {3}\n\n\n".format(x.id, x.submission_id, x.title, x.answer))
-
-
-def get_stats():
-    """
-    Prints statistics from database data to terminal
-    """
-    total = session.query(Question).count()
-    unique = session.query(Question).distinct(Question.answer).count()
-    print("\nThere are {0} answers from spirits in the database, {1} of them are unique.\n".format(total, unique))
 
 
 def preprocess_data():

@@ -101,7 +101,7 @@ def train():
     int_text, vocab_to_int, int_to_vocab, token_dict = load_data()
     # hyperparams
     num_epochs = 100
-    batch_size = 200
+    batch_size = 10
     rnn_size = 1024
     embed_dim = 128
     seq_length = 19
